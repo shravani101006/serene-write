@@ -1,0 +1,78 @@
+<!-- edit-post.html -->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Create / Edit Post — SereneWrite</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container">
+      <a href="/" class="brand">SereneWrite</a>
+      <nav><a href="/" class="muted">Home</a></nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2 id="formTitle">New Post</h2>
+      <form id="postForm" class="form">
+        <label>Title
+          <input name="title" required />
+        </label>
+        <label>Tags (comma separated)
+          <input name="tags" />
+        </label>
+        <label>Featured Image (paste base64 or URL)
+          <textarea name="featuredImage" placeholder="data:image/png;base64,... or https://..."></textarea>
+        </label>
+        <label>Content (HTML allowed)
+          <textarea name="content" rows="10"></textarea>
+        </label>
+        <button class="btn" type="submit">Save</button>
+      </form>
+    </section>
+  </main>
+
+<script src="script.js"></script>
+<script>
+(async function(){
+  await initNav();
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id');
+  const form = document.getElementById('postForm');
+  if(id){
+    document.getElementById('formTitle').textContent = 'Edit Post';
+    const post = await apiFetch(`/api/post/${id}`, 'GET');
+    form.title.value = post.title;
+    form.tags.value = (post.tags||[]).join(',');
+    form.featuredImage.value = post.featuredImage || '';
+    form.content.value = post.content || '';
+  }
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const payload = {
+      title: form.title.value,
+      tags: form.tags.value.split(',').map(t => t.trim()).filter(Boolean),
+      featuredImage: form.featuredImage.value || null,
+      content: form.content.value
+    };
+    try {
+      if(id){
+        await apiFetch(`/api/post/${id}`, 'PUT', payload);
+      } else {
+        await apiFetch('/api/post', 'POST', payload);
+      }
+      location.href = '/';
+    } catch (err) {
+      alert('Please login to publish posts');
+      location.href = 'login.html';
+    }
+  });
+})();
+</script>
+</body>
+</html>

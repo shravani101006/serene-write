@@ -1,0 +1,43 @@
+<!-- profile.html -->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Profile — SereneWrite</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container">
+      <a href="/" class="brand">SereneWrite</a>
+      <nav><a href="/" class="muted">Home</a></nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="profileCard" class="card profile-card"></section>
+
+    <section>
+      <h3>Your Posts</h3>
+      <div id="myPosts" class="grid"></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+  <script>
+    (async function () {
+      await initNav();
+      try {
+        const user = await apiFetch('/api/user/me', 'GET');
+        renderProfile(user);
+        const posts = await apiFetch(`/api/post/user/${user._id}`, 'GET');
+        renderPostsList(posts, document.getElementById('myPosts'), true);
+      } catch (err) {
+        alert('Please login to view profile');
+        location.href = 'login.html';
+      }
+    })();
+  </script>
+</body>
+</html>

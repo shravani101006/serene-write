@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — SereneWrite</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">✨ SereneWrite</div>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-btn">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="auth-page active">
+    <div class="auth-box">
+      <h2 class="auth-title">Login</h2>
+
+      <form id="loginForm">
+        <input 
+          type="email" 
+          id="email" 
+          placeholder="Email address"
+          required
+        />
+
+        <input 
+          type="password" 
+          id="password" 
+          placeholder="Password"
+          required
+        />
+
+        <button type="submit" class="auth-btn">Login</button>
+      </form>
+
+      <p class="auth-switch">
+        No account? <a href="signup.html">Sign up</a>
+      </p>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+<script>
+  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    try {
+      const res = await apiFetch("/api/auth/login", "POST", { email, password });
+
+      // FIX: save token
+      if (res.token) {
+        localStorage.setItem("token", res.token);
+      }
+
+      alert("Login successful!");
+      window.location.href = "/";
+    } catch (err) {
+      console.error(err);
+      alert("Login failed");
+    }
+  });
+</script>
+
+</body>
+</html>

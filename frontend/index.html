@@ -1,0 +1,62 @@
+<!-- index.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SereneWrite — Home</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="navbar">
+  <div class="nav-container">
+
+    <a href="index.html" class="nav-logo">✨ SereneWrite</a>
+
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="profile.html" id="navProfile" class="hidden">Profile</a>
+      <a href="edit-post.html" id="navNewPost" class="hidden">New Post</a>
+      <a href="login.html" id="navAuth">Login</a>
+      <button id="logoutBtn" class="nav-btn hidden">Logout</button>
+    </nav>
+
+  </div>
+</header>
+
+
+  <main class="container">
+    <section id="hero" class="card hero">
+      <h1>SereneWrite</h1>
+      <p class="muted">Write, Share, and Reflect.</p>
+    </section>
+
+    <section id="feed" class="grid"></section>
+
+    <div id="pagination" class="pagination"></div>
+  </main>
+
+  <footer class="container footer">
+    <p>© SereneWrite</p>
+  </footer>
+
+  <!-- Load main script -->
+  <script src="script.js"></script>
+
+  <!-- Page Initialization -->
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      initNav();      // sets up login/profile buttons
+      loadFeed();     // loads all posts
+
+      // ⭐ New Post Button Behavior
+      const newPostBtn = document.getElementById("newPostBtn");
+      if (newPostBtn) {
+        newPostBtn.addEventListener("click", () => {
+          window.location.href = "edit-post.html";
+        });
+      }
+    });
+  </script>
+</body>
+</html>

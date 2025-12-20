@@ -1,0 +1,62 @@
+<!-- post.html -->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Post — SereneWrite</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container">
+      <a href="/" class="brand">SereneWrite</a>
+      <nav><a href="/" class="muted">Home</a></nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <article id="postArea" class="card post-view"></article>
+
+    <section class="card" id="commentsSection">
+      <h4>Comments</h4>
+      <div id="commentsList"></div>
+      <form id="commentForm" class="form">
+        <textarea name="text" placeholder="Add a comment..." required></textarea>
+        <button type="submit" class="btn">Comment</button>
+      </form>
+    </section>
+  </main>
+
+<script src="script.js"></script>
+<script>
+(async function(){
+  await initNav();
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id');
+  if(!id) { location.href = '/'; return; }
+
+  const post = await apiFetch(`/api/post/${id}`, 'GET', null);
+  renderFullPost(post);
+
+  const comments = await apiFetch(`/api/comment/post/${id}`, 'GET');
+  renderComments(comments);
+
+  // increment view handled by backend when fetching post
+
+  document.getElementById('commentForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    try {
+      const text = e.target.text.value;
+      await apiFetch(`/api/comment/${id}`, 'POST', { text });
+      e.target.reset();
+      const updated = await apiFetch(`/api/comment/post/${id}`, 'GET');
+      renderComments(updated);
+    } catch (err) {
+      alert('Login to comment');
+    }
+  });
+})();
+</script>
+</body>
+</html>
