@@ -60,6 +60,31 @@ async function fetchCurrentUser() {
   }
 }
 
+// Simple toast notification (message, duration ms)
+function showToast(message, duration = 1400) {
+  try {
+    const existing = document.getElementById('siteToast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.id = 'siteToast';
+    toast.className = 'toast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    // trigger show
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 220);
+    }, duration);
+    return toast;
+  } catch (err) { console.warn('showToast failed', err); }
+}
+
+// expose for page scripts
+window.showToast = showToast;
+
 // -----------------------------------------------------
 // Navigation Handling (Login / Logout / New Post Button)
 // Improved to support multiple DOM id names and link/button types
