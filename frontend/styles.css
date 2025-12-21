@@ -20,6 +20,12 @@
   --shadow: rgba(0, 0, 0, 0.12);
   --text: #4a4a4a;
 
+  /* layout & sizing */
+  --max-width: 1200px;
+  --container-pad: 2rem;
+  --panel-padding: 2.5rem;
+  --panel-border-width: 3px;
+
   --radius: 22px;
   --transition: 0.25s ease;
 }
@@ -32,6 +38,30 @@ body {
   background: linear-gradient(135deg, var(--cream), var(--white));
   color: var(--text);
 }
+
+/* Utilities */
+.container {
+  max-width: var(--max-width);
+  margin: auto;
+  padding: 0 var(--container-pad);
+}
+
+.panel {
+  background: var(--soft-white);
+  padding: var(--panel-padding);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 20px var(--shadow);
+  border: var(--panel-border-width) solid var(--panel-border-color, var(--purple));
+}
+
+/* shared button base */
+.btn-base {
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  border-radius: 22px;
+}
+
 
 /* ----------------------------------
    NAVBAR (UNIFIED FOR ALL PAGES)
@@ -99,19 +129,28 @@ body {
 }
 
 /* ----------------------------------
+   COMMON PANELS (DRY)
+---------------------------------- */
+/* applied to several boxes across the site to keep look consistent */
+.hero,
+.post-view,
+.new-post-form,
+.auth-box {
+  background: var(--soft-white);
+  padding: var(--panel-padding);
+  border-radius: var(--radius);
+  border: var(--panel-border-width) solid var(--panel-border-color, var(--purple));
+  box-shadow: 0 6px 20px var(--shadow);
+}
+
+/* ----------------------------------
    HERO BOX (Homepage)
 ---------------------------------- */
 .hero {
-  background: var(--soft-white);
-  padding: 3rem 2rem;
   text-align: center;
-
-  border-radius: var(--radius);
-  border: 3px solid var(--purple);
-
   max-width: 700px;
   margin: 2rem auto;
-  box-shadow: 0 6px 20px var(--shadow);
+  padding: 3rem 2rem; /* slightly larger visual emphasis */
 }
 
 .hero h1 {
@@ -122,7 +161,7 @@ body {
 .hero p {
   font-size: 1.1rem;
   color: #666;
-}
+} 
 
 /* ----------------------------------
    FEED GRID (Square cards)
@@ -179,12 +218,7 @@ body {
 .post-view {
   max-width: 900px;
   margin: 2rem auto;
-  padding: 2.5rem;
-
-  background: var(--soft-white);
-  border-radius: var(--radius);
-  border: 3px solid var(--blue);
-  box-shadow: 0 6px 20px var(--shadow);
+  border-color: var(--blue); /* uses shared panel styles for background/border/shadow */
 }
 
 .post-view h2 {
@@ -195,7 +229,7 @@ body {
   margin-top: 1rem;
   font-size: 1.1rem;
   color: #555;
-}
+} 
 
 /* ----------------------------------
    NEW POST / EDIT POST PAGE
@@ -211,15 +245,12 @@ body {
 }
 
 .new-post-form {
-  background: var(--soft-white);
-  padding: 2.5rem;
-  border-radius: var(--radius);
-  border: 3px solid var(--purple);
-  box-shadow: 0 6px 20px var(--shadow);
+  border-color: var(--purple); /* shared panel provides background/padding/shadow */
 }
 
 .new-post-form input,
-.new-post-form textarea {
+.new-post-form textarea,
+.auth-box input {
   width: 100%;
   margin-top: 12px;
 
@@ -231,13 +262,15 @@ body {
 }
 
 .new-post-form input:focus,
-.new-post-form textarea:focus {
+.new-post-form textarea:focus,
+.auth-box input:focus {
   border-color: var(--purple);
   outline: none;
   box-shadow: 0 0 0 4px rgba(231,198,255,0.25);
-}
+} 
 
-.btn {
+.btn,
+.auth-btn {
   width: 100%;
   margin-top: 20px;
   padding: 1rem;
@@ -252,10 +285,11 @@ body {
   transition: var(--transition);
 }
 
-.btn:hover {
+.btn:hover,
+.auth-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(255, 179, 198, 0.4);
-}
+} 
 
 /* ----------------------------------
    LOGIN & SIGNUP PAGE
@@ -267,13 +301,9 @@ body {
 .auth-box {
   max-width: 360px;
   margin: 60px auto;
-  background: var(--soft-white);
   padding: 35px 28px;
-
-  border-radius: var(--radius);
-  border: 3px solid var(--purple);
-  box-shadow: 0 6px 18px var(--shadow);
-}
+  border-color: var(--purple);
+} 
 
 .auth-title {
   text-align: center;
@@ -328,6 +358,20 @@ body {
 
 .auth-switch a:hover {
   color: var(--red);
+}
+
+/* ----------------------------------
+   RESPONSIVE TWEAKS
+---------------------------------- */
+@media (max-width: 760px) {
+  .grid { gap: 0.8rem; }
+  .card.post { width: calc(50% - 0.6rem); height: auto; }
+}
+
+@media (max-width: 420px) {
+  .card.post { width: 100%; }
+  .nav-container { padding: 0 1rem; }
+  .hero { padding: 2rem 1rem; }
 }
 
 /* ----------------------------------
