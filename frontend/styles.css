@@ -1,3 +1,4 @@
+
 /* ----------------------------------
    RESET + THEME COLORS
 ---------------------------------- */
@@ -373,6 +374,59 @@ body {
   .nav-container { padding: 0 1rem; }
   .hero { padding: 2rem 1rem; }
 }
+
+/* ----------------------------------
+   LIKE BUTTON
+---------------------------------- */
+.like-btn {
+  background: linear-gradient(135deg,#fff,#fff8f8);
+  border: 1px solid rgba(0,0,0,0.06);
+  font-size: 1.15rem;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 10px;
+  transition: var(--transition);
+}
+
+.like-btn:hover { background: linear-gradient(135deg,#fff,#ffecec); }
+.like-btn.liked { color: #e25555; transform: translateY(-2px); border-color: #ffdddd; }
+
+.like-count { cursor: pointer; color: #666; }
+.like-count:focus { outline: 2px solid rgba(0,0,0,0.08); }
+
+/* Modal for likers */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-panel {
+  background: var(--white);
+  padding: 1.2rem;
+  border-radius: 12px;
+  width: 320px;
+  max-height: 70vh;
+  overflow: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  float: right;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.liker-row { display:flex; align-items:center; gap:10px; padding:8px 0; }
+.liker-row img { width:36px; height:36px; border-radius:8px; object-fit:cover; }
+.liker-row .avatar-placeholder { width:36px; height:36px; border-radius:8px; background: #eee; }
+.liker-name { font-weight:600; }
 
 /* ----------------------------------
    FOOTER
