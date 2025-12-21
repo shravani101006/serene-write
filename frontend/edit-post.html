@@ -8,17 +8,26 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="container">
-      <a href="/" class="brand">SereneWrite</a>
-      <nav><a href="/" class="muted">Home</a></nav>
+  <header class="navbar">
+    <div class="nav-container">
+
+      <a href="index.html" class="nav-logo">✨ SereneWrite</a>
+
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="profile.html" id="navProfile" class="hidden">Profile</a>
+        <a href="edit-post.html" id="navNewPost" class="hidden">New Post</a>
+        <a href="login.html" id="navAuth">Login</a>
+        <button id="logoutBtn" class="nav-btn hidden">Logout</button>
+      </nav>
+
     </div>
   </header>
 
-  <main class="container">
-    <section class="card">
+  <main class="container new-post-container">
+    <section class="new-post-form panel">
       <h2 id="formTitle">New Post</h2>
-      <form id="postForm" class="form">
+      <form id="postForm" class="new-post-form">
         <label>Title
           <input name="title" required />
         </label>
@@ -39,17 +48,24 @@
 <script src="script.js"></script>
 <script>
 (async function(){
-  await initNav();
+  initNav();
+  await fetchCurrentUser();
+
   const params = new URLSearchParams(location.search);
   const id = params.get('id');
   const form = document.getElementById('postForm');
   if(id){
     document.getElementById('formTitle').textContent = 'Edit Post';
-    const post = await apiFetch(`/api/post/${id}`, 'GET');
-    form.title.value = post.title;
-    form.tags.value = (post.tags||[]).join(',');
-    form.featuredImage.value = post.featuredImage || '';
-    form.content.value = post.content || '';
+    try {
+      const post = await apiFetch(`/api/post/${id}`, 'GET');
+      form.title.value = post.title;
+      form.tags.value = (post.tags||[]).join(',');
+      form.featuredImage.value = post.featuredImage || '';
+      form.content.value = post.content || '';
+    } catch (err) {
+      console.error('Failed to load post for editing', err);
+      alert('Failed to load post');
+    }
   }
 
   form.addEventListener('submit', async e => {
@@ -66,8 +82,9 @@
       } else {
         await apiFetch('/api/post', 'POST', payload);
       }
-      location.href = '/';
+      location.href = 'index.html';
     } catch (err) {
+      console.error('Save failed', err);
       alert('Please login to publish posts');
       location.href = 'login.html';
     }
