@@ -362,6 +362,27 @@ body {
 }
 
 /* ----------------------------------
+   COMMENTS
+---------------------------------- */
+#commentsSection { margin-top: 1rem; }
+#commentsList { margin-top: 12px; display:flex; flex-direction:column; gap:12px; }
+.comment { display:flex; gap:12px; align-items:flex-start; padding:12px; border-radius:10px; background: #fafafa; border:1px solid rgba(0,0,0,0.03); }
+.comment-left { width:48px; }
+.comment-avatar { width:44px; height:44px; border-radius:8px; object-fit:cover; }
+.comment-avatar.placeholder { width:44px; height:44px; border-radius:8px; background:#eee; }
+.comment-body { flex:1; }
+.comment-meta { display:flex; gap:8px; align-items:center; margin-bottom:6px; }
+.comment-author { font-weight:700; }
+.comment-time { font-size:0.85rem; color:#888; }
+.delete-comment { margin-left:auto; background:transparent; border:none; color:#c33; cursor:pointer; font-size:0.9rem; }
+.comment-text { white-space:pre-wrap; line-height:1.4; color:#333; }
+
+/* Style comment form */
+#commentForm { margin-top:12px; display:flex; gap:8px; align-items:flex-start; }
+#commentForm textarea { flex:1; min-height:48px; resize:vertical; }
+#commentForm .btn { width:auto; padding:0.6rem 1rem; }
+
+/* ----------------------------------
    RESPONSIVE TWEAKS
 ---------------------------------- */
 @media (max-width: 760px) {
