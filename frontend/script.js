@@ -469,12 +469,54 @@ function renderComments(list) {
   }
 
   box.innerHTML = list
-    .map(
-      c => `<div class="comment">
-        <b>${c.user?.name || 'Anonymous'}</b>: ${c.text}
-      </div>`
-    )
+    .map(c => {
+      const author = c.author || c.user || {};
+      const name = author.name || 'Anonymous';
+      const avatar = author.avatar || '';
+      const when = c.createdAt ? new Date(c.createdAt).toLocaleString() : '';
+      const isMine = currentUser && author._id && String(author._id) === String(currentUser._id);
+
+      return `
+        <div class="comment" data-id="${c._id}">
+          <div class="comment-left">
+            ${avatar ? `<img class="comment-avatar" src="${avatar}" alt="${name}"/>` : `<div class="comment-avatar placeholder"></div>`}
+          </div>
+          <div class="comment-body">
+            <div class="comment-meta">
+              <span class="comment-author">${name}</span>
+              <span class="comment-time muted">${when}</span>
+              ${isMine ? `<button class="delete-comment" data-id="${c._id}" title="Delete comment">Delete</button>` : ''}
+            </div>
+            <div class="comment-text">${escapeHtml(c.text)}</div>
+          </div>
+        </div>
+      `;
+    })
     .join("");
+
+  // attach delete handlers
+  box.querySelectorAll('.delete-comment').forEach(btn => {
+    if (btn._attached) return;
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const id = btn.dataset.id;
+      if (!confirm('Delete this comment?')) return;
+      try {
+        await apiFetch(`/api/comment/${id}`, 'DELETE');
+        // refresh comments list (assumes post id in URL)
+        const params = new URLSearchParams(location.search);
+        const postId = params.get('id');
+        if (postId) {
+          const updated = await apiFetch(`/api/comment/post/${postId}`, 'GET');
+          renderComments(updated);
+        }
+      } catch (err) {
+        console.error('Delete failed', err);
+        alert('Failed to delete comment');
+      }
+    });
+    btn._attached = true;
+  });
 }
 
 // -----------------------------------------------------
@@ -496,6 +538,12 @@ function renderProfile(user) {
       <p style="margin-top:12px">${user.bio || ''}</p>
     </div>
   `;
+}
+
+// small helper to escape html in comment text
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 }
 
 function renderPostsList(posts, container = document.getElementById('myPosts'), owner = false) {
