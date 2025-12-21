@@ -312,4 +312,36 @@ function renderComments(list) {
       </div>`
     )
     .join("");
+}
+
+// -----------------------------------------------------
+// PROFILE RENDERING HELPERS
+// -----------------------------------------------------
+function renderProfile(user) {
+  const area = document.getElementById('profileCard');
+  if (!area) return;
+
+  area.innerHTML = `
+    <div class="profile-header panel">
+      <div style="display:flex;align-items:center;gap:16px;">
+        ${user.avatar ? `<img src="${user.avatar}" alt="avatar" style="width:84px;height:84px;border-radius:12px;object-fit:cover;"/>` : ''}
+        <div>
+          <h2 style="margin:0">${user.name}</h2>
+          <div class="muted">${user.email || ''}</div>
+        </div>
+      </div>
+      <p style="margin-top:12px">${user.bio || ''}</p>
+    </div>
+  `;
+}
+
+function renderPostsList(posts, container = document.getElementById('myPosts'), owner = false) {
+  if (!container) return;
+  if (!posts || !posts.length) {
+    container.innerHTML = '<p>No posts yet</p>';
+    return;
+  }
+
+  container.innerHTML = posts.map(postTemplate).join('');
+  attachPostClicks(container);
 } 
