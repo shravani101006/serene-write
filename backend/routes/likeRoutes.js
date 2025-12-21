@@ -21,4 +21,14 @@ router.post('/:postId', auth, async (req,res) => {
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 });
 
+// Get likers for a post (public)
+router.get('/:postId', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId).populate('likes', 'name avatar');
+    if(!post) return res.status(404).json({ message: 'Not found' });
+    const likers = (post.likes || []).map(u => ({ _id: u._id, name: u.name, avatar: u.avatar }));
+    res.json({ likers });
+  } catch (err) { res.status(500).json({ message: 'Server error' }); }
+});
+
 module.exports = router;
