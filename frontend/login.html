@@ -46,28 +46,11 @@
   </main>
 
   <script src="script.js"></script>
-<script>
-  document.getElementById("loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-
-    try {
-      const res = await apiFetch("/api/auth/login", "POST", { email, password });
-
-      // FIX: save token
-      if (res.token) {
-        localStorage.setItem("token", res.token);
-      }
-
-      alert("Login successful!");
-      window.location.href = "/";
-    } catch (err) {
-      console.error(err);
-      alert("Login failed");
-    }
-  });
-</script>
+  <script>
+    // Login form is handled centrally by `handleLogin` in script.js which ensures the token is stored and nav updates.
+    // If you ever need explicit wiring on this page, use:
+    // document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
+  </script>
 
 </body>
 </html>
