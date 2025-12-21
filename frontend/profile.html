@@ -8,10 +8,19 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="container">
-      <a href="/" class="brand">SereneWrite</a>
-      <nav><a href="/" class="muted">Home</a></nav>
+  <header class="navbar">
+    <div class="nav-container">
+
+      <a href="index.html" class="nav-logo">✨ SereneWrite</a>
+
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="profile.html" id="navProfile" class="hidden">Profile</a>
+        <a href="edit-post.html" id="navNewPost" class="hidden">New Post</a>
+        <a href="login.html" id="navAuth">Login</a>
+        <button id="logoutBtn" class="nav-btn hidden">Logout</button>
+      </nav>
+
     </div>
   </header>
 
@@ -27,15 +36,25 @@
   <script src="script.js"></script>
   <script>
     (async function () {
-      await initNav();
+      initNav();
+
+      const token = localStorage.getItem('token');
+      if (!token) { location.href = 'login.html'; return; }
+
       try {
         const user = await apiFetch('/api/user/me', 'GET');
         renderProfile(user);
         const posts = await apiFetch(`/api/post/user/${user._id}`, 'GET');
         renderPostsList(posts, document.getElementById('myPosts'), true);
       } catch (err) {
-        alert('Please login to view profile');
-        location.href = 'login.html';
+        console.error(err);
+        // Redirect to login if unauthorized, otherwise show message
+        if (err.message && /unauthori|401/i.test(err.message)) {
+          location.href = 'login.html';
+        } else {
+          const area = document.getElementById('profileCard');
+          if (area) area.innerHTML = '<p>Failed to load profile.</p>';
+        }
       }
     })();
   </script>
