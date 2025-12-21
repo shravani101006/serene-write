@@ -1,3 +1,4 @@
+
 // -----------------------------------------------------
 // API Fetch Wrapper  (robust + dev/prod friendly)
 // -----------------------------------------------------
@@ -36,12 +37,27 @@ async function apiFetch(url, method = "GET", body = null) {
 } 
 
 // Helpers
+let currentUser = null;
+
 function $ids(...ids) {
   for (const id of ids) {
     const el = document.getElementById(id);
     if (el) return el;
   }
   return null;
+}
+
+async function fetchCurrentUser() {
+  const token = localStorage.getItem('token');
+  if (!token) { currentUser = null; return null; }
+  try {
+    currentUser = await apiFetch('/api/user/me', 'GET');
+    return currentUser;
+  } catch (err) {
+    console.warn('fetchCurrentUser failed', err);
+    currentUser = null;
+    return null;
+  }
 }
 
 // -----------------------------------------------------
@@ -111,6 +127,7 @@ async function loadFeed() {
 
   try {
     const posts = await apiFetch("/api/post");
+    console.debug('loadFeed posts.length=', posts?.length);
 
     if (!posts || !posts.length) {
       feed.innerHTML = `<p>No posts found</p>`;
@@ -119,6 +136,7 @@ async function loadFeed() {
 
     feed.innerHTML = posts.map(postTemplate).join("");
     attachPostClicks(feed);
+    attachLikeHandlers(feed);
 
   } catch (err) {
     console.error(err);
@@ -127,11 +145,19 @@ async function loadFeed() {
 }
 
 function postTemplate(post) {
+  const likesCount = (post.likes && post.likes.length) || 0;
+  const liked = currentUser && post.likes && post.likes.some(id => String(id) === String(currentUser._id));
+  const safeTitle = String(post.title || '').replace(/"/g, '&quot;');
+
   return `
     <article class="card post" data-id="${post._id}">
       <h3>${post.title}</h3>
       <p class="muted">${post.tags?.join(", ") || ""}</p>
       <p>${(post.content || "").slice(0, 80)}...</p>
+      <div style="margin-top:12px;display:flex;justify-content:center;gap:8px;align-items:center;">
+        <button class="like-btn ${liked ? 'liked' : ''}" data-id="${post._id}" aria-pressed="${liked ? 'true' : 'false'}" aria-label="${liked ? 'Unlike' : 'Like'} post titled ${safeTitle}" title="${liked ? 'Unlike' : 'Like'}">❤</button>
+        <span class="like-count" role="button" tabindex="0" data-id="${post._id}" title="View who liked this post">${likesCount}</span>
+      </div>
     </article>
   `;
 }
@@ -140,7 +166,8 @@ function attachPostClicks(container = document) {
   const cards = container.querySelectorAll('.card.post[data-id]');
   cards.forEach(card => {
     if (card._attached) return;
-    card.addEventListener('click', () => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.like-btn') || e.target.closest('.like-count')) return; // allow interactive children
       const id = card.dataset.id;
       viewPost(id);
     });
@@ -151,6 +178,98 @@ function attachPostClicks(container = document) {
 function viewPost(id) {
   location.href = `post.html?id=${id}`;
 } 
+
+// like handlers
+function attachLikeHandlers(container = document) {
+  const btns = container.querySelectorAll('.like-btn[data-id]');
+  btns.forEach(btn => {
+    if (btn._attached) return;
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      await toggleLike(id, btn);
+    });
+
+    const countEl = btn.nextElementSibling;
+    if (countEl && !countEl._attached) {
+      countEl.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = countEl.dataset.id;
+        const list = await fetchLikers(id);
+        showLikersModal(list);
+      });
+      countEl.addEventListener('keydown', async (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const id = countEl.dataset.id; const list = await fetchLikers(id); showLikersModal(list); } });
+      countEl._attached = true;
+    }
+
+    btn._attached = true;
+  });
+}
+
+async function toggleLike(postId, btn) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    if (confirm('Login to like this post?')) location.href = 'login.html';
+    return;
+  }
+
+  try {
+    const res = await apiFetch(`/api/like/${postId}`, 'POST');
+    const count = res?.likes ?? null;
+    if (count !== null) {
+      const countEl = btn.nextElementSibling;
+      if (countEl) {
+        const wasFull = String(countEl.textContent).toLowerCase().includes('like');
+        countEl.textContent = wasFull ? `${count} likes` : String(count);
+      }
+      const isLiked = btn.classList.toggle('liked');
+      btn.setAttribute('aria-pressed', isLiked ? 'true' : 'false');
+      btn.setAttribute('aria-label', isLiked ? 'Unlike post' : 'Like post');
+      btn.title = isLiked ? 'Unlike' : 'Like';
+    }
+  } catch (err) {
+    console.error('Like failed', err);
+    alert('Failed to update like');
+  }
+}
+
+async function fetchLikers(postId) {
+  try {
+    const res = await apiFetch(`/api/like/${postId}`, 'GET');
+    return res?.likers || [];
+  } catch (err) {
+    console.error('Failed to fetch likers', err);
+    return [];
+  }
+}
+
+function showLikersModal(list) {
+  const existing = document.getElementById('likersModal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'likersModal';
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Users who liked this post">
+      <button class="modal-close" aria-label="Close">✕</button>
+      <h3 style="margin-top:0">Liked by</h3>
+      <div class="likers-list">
+        ${list.length ? list.map(u => `
+          <div class="liker-row">
+            ${u.avatar ? `<img src="${u.avatar}" alt="${u.name || 'avatar'}"/>` : '<div class="avatar-placeholder"></div>'}
+            <div class="liker-name">${u.name || 'Anonymous'}</div>
+          </div>
+        `).join('') : '<p>No likes yet</p>'}
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  overlay.querySelector('.modal-close')?.addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector('.modal-panel')?.focus();
+}
 
 // -----------------------------------------------------
 // SEARCH BAR
@@ -237,8 +356,12 @@ async function handleSignup(e) {
 // -----------------------------------------------------
 // Auto-initialize common page handlers
 // -----------------------------------------------------
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   initNav();
+
+  // fetch current user early so like state can be rendered
+  await fetchCurrentUser();
+  console.debug('DOMContentLoaded currentUser=', currentUser);
 
   // Global search wiring (if present)
   const searchBtn = document.getElementById('searchBtn');
@@ -253,7 +376,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (!result || !result.length) {
           if (feed) feed.innerHTML = `<p>No results found</p>`;
         } else {
-          if (feed) { feed.innerHTML = result.map(postTemplate).join(''); attachPostClicks(feed); }
+          if (feed) { feed.innerHTML = result.map(postTemplate).join(''); attachPostClicks(feed); attachLikeHandlers(feed); }
         }
       } catch (err) {
         if (feed) feed.innerHTML = `<p>Search failed</p>`;
@@ -285,12 +408,27 @@ function renderFullPost(post) {
   const area = document.getElementById("postArea");
   if (!area) return;
 
+  const likesCount = (post.likes && post.likes.length) || 0;
+  const liked = currentUser && post.likes && post.likes.some(id => String(id) === String(currentUser._id));
+  const safeTitle = String(post.title || '').replace(/"/g, '&quot;');
+
   area.innerHTML = `
     <h1>${post.title}</h1>
     <p class="muted">${post.tags?.join(", ")}</p>
     ${post.featuredImage ? `<img src="${post.featuredImage}" class="post-img" />` : ""}
     <div class="content">${post.content}</div>
+    <div style="margin-top:16px;display:flex;gap:12px;align-items:center;">
+      <button class="like-btn ${liked ? 'liked' : ''}" data-id="${post._id}" aria-pressed="${liked ? 'true' : 'false'}" aria-label="${liked ? 'Unlike' : 'Like'} post titled ${safeTitle}" title="${liked ? 'Unlike' : 'Like'}">❤</button>
+      <span class="like-count" role="button" tabindex="0" data-id="${post._id}" title="View who liked this post">${likesCount} likes</span>
+    </div>
   `;
+
+  // attach like handler for this post
+  const btn = area.querySelector('.like-btn');
+  if (btn) btn.addEventListener('click', async (e) => { e.stopPropagation(); await toggleLike(post._id, btn); });
+
+  const countEl = area.querySelector('.like-count');
+  if (countEl) countEl.addEventListener('click', async () => { const list = await fetchLikers(post._id); showLikersModal(list); });
 }
 
 // -----------------------------------------------------
@@ -344,4 +482,13 @@ function renderPostsList(posts, container = document.getElementById('myPosts'), 
 
   container.innerHTML = posts.map(postTemplate).join('');
   attachPostClicks(container);
-} 
+  attachLikeHandlers(container);
+}
+
+// Expose helpers for inline scripts / console
+window.apiFetch = apiFetch;
+window.handleLogin = handleLogin;
+window.handleSignup = handleSignup;
+window.initNav = initNav;
+window.fetchCurrentUser = fetchCurrentUser;
+window.toggleLike = toggleLike; 
