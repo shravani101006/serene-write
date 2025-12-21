@@ -82,7 +82,11 @@
       } else {
         await apiFetch('/api/post', 'POST', payload);
       }
-      location.href = 'index.html';
+
+      // show success toast then redirect after short delay
+      showToast('Saved! Redirecting...', 1400);
+      setTimeout(() => { location.href = 'index.html'; }, 1400);
+
     } catch (err) {
       console.error('Save failed', err);
       alert('Please login to publish posts');
@@ -93,3 +97,4 @@
 </script>
 </body>
 </html>
+
