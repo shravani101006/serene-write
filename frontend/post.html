@@ -8,10 +8,19 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="container">
-      <a href="/" class="brand">SereneWrite</a>
-      <nav><a href="/" class="muted">Home</a></nav>
+  <header class="navbar">
+    <div class="nav-container">
+
+      <a href="index.html" class="nav-logo">✨ SereneWrite</a>
+
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="profile.html" id="navProfile" class="hidden">Profile</a>
+        <a href="edit-post.html" id="navNewPost" class="hidden">New Post</a>
+        <a href="login.html" id="navAuth">Login</a>
+        <button id="logoutBtn" class="nav-btn hidden">Logout</button>
+      </nav>
+
     </div>
   </header>
 
@@ -31,31 +40,46 @@
 <script src="script.js"></script>
 <script>
 (async function(){
-  await initNav();
+  // initialize navigation and page handlers
+  initNav();
   const params = new URLSearchParams(location.search);
   const id = params.get('id');
-  if(!id) { location.href = '/'; return; }
+  if(!id) { location.href = 'index.html'; return; }
 
-  const post = await apiFetch(`/api/post/${id}`, 'GET', null);
-  renderFullPost(post);
+  try {
+    const post = await apiFetch(`/api/post/${id}`, 'GET');
+    renderFullPost(post);
 
-  const comments = await apiFetch(`/api/comment/post/${id}`, 'GET');
-  renderComments(comments);
+    const comments = await apiFetch(`/api/comment/post/${id}`, 'GET');
+    renderComments(comments);
+  } catch (err) {
+    console.error(err);
+    const area = document.getElementById('postArea');
+    if (area) area.innerHTML = '<p>Failed to load post.</p>';
+    return;
+  }
 
-  // increment view handled by backend when fetching post
-
-  document.getElementById('commentForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    try {
-      const text = e.target.text.value;
-      await apiFetch(`/api/comment/${id}`, 'POST', { text });
-      e.target.reset();
-      const updated = await apiFetch(`/api/comment/post/${id}`, 'GET');
-      renderComments(updated);
-    } catch (err) {
-      alert('Login to comment');
-    }
-  });
+  const commentForm = document.getElementById('commentForm');
+  if (commentForm) {
+    commentForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const submitBtn = commentForm.querySelector('button[type="submit"]');
+      try {
+        const text = e.target.text.value.trim();
+        if (!text) return;
+        if (submitBtn) submitBtn.disabled = true;
+        await apiFetch(`/api/comment/${id}`, 'POST', { text });
+        e.target.reset();
+        const updated = await apiFetch(`/api/comment/post/${id}`, 'GET');
+        renderComments(updated);
+      } catch (err) {
+        console.error(err);
+        alert('Failed to post comment — make sure you are logged in.');
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  }
 })();
 </script>
 </body>
