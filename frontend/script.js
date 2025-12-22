@@ -1,4 +1,5 @@
 
+
 // -----------------------------------------------------
 // API Fetch Wrapper  (robust + dev/prod friendly)
 // -----------------------------------------------------
@@ -162,6 +163,7 @@ async function loadFeed() {
     feed.innerHTML = posts.map(postTemplate).join("");
     attachPostClicks(feed);
     attachLikeHandlers(feed);
+    attachOwnerHandlers(feed);
 
   } catch (err) {
     console.error(err);
@@ -173,9 +175,12 @@ function postTemplate(post) {
   const likesCount = (post.likes && post.likes.length) || 0;
   const liked = currentUser && post.likes && post.likes.some(id => String(id) === String(currentUser._id));
   const safeTitle = String(post.title || '').replace(/"/g, '&quot;');
+  const isOwner = currentUser && post.author && String(currentUser._id) === String(post.author._id);
+  const moodBadge = post.mood ? `<div class="mood-badge" aria-hidden="true">${post.mood}</div>` : '';
 
   return `
     <article class="card post" data-id="${post._id}">
+      ${moodBadge}
       <h3>${post.title}</h3>
       <p class="muted">${post.tags?.join(", ") || ""}</p>
       <p>${(post.content || "").slice(0, 80)}...</p>
@@ -183,6 +188,7 @@ function postTemplate(post) {
         <button class="like-btn ${liked ? 'liked' : ''}" data-id="${post._id}" aria-pressed="${liked ? 'true' : 'false'}" aria-label="${liked ? 'Unlike' : 'Like'} post titled ${safeTitle}" title="${liked ? 'Unlike' : 'Like'}">❤</button>
         <span class="like-count" role="button" tabindex="0" data-id="${post._id}" title="View who liked this post">${likesCount}</span>
       </div>
+      ${isOwner ? `<div style="margin-top:8px;display:flex;gap:6px;justify-content:center;"><a class="btn btn-inline" href="edit-post.html?id=${post._id}" role="button">Edit</a><button class="btn btn-inline danger post-delete" data-id="${post._id}">Delete</button></div>` : ''}
     </article>
   `;
 }
@@ -192,7 +198,8 @@ function attachPostClicks(container = document) {
   cards.forEach(card => {
     if (card._attached) return;
     card.addEventListener('click', (e) => {
-      if (e.target.closest('.like-btn') || e.target.closest('.like-count')) return; // allow interactive children
+      // ignore clicks on interactive elements so they don't open the post
+      if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.like-count')) return;
       const id = card.dataset.id;
       viewPost(id);
     });
@@ -227,6 +234,41 @@ function attachLikeHandlers(container = document) {
       countEl._attached = true;
     }
 
+    btn._attached = true;
+  });
+}
+
+// Wire owner-specific handlers (delete posts inline from feed/profile)
+function attachOwnerHandlers(container = document) {
+  const delBtns = container.querySelectorAll('.post-delete[data-id]');
+  delBtns.forEach(btn => {
+    if (btn._attached) return;
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const id = btn.dataset.id;
+      if (!confirm('Delete this post? This action cannot be undone.')) return;
+      try {
+        await apiFetch(`/api/post/${id}`, 'DELETE');
+        showToast('Post deleted', 1200);
+        // remove card from DOM
+        const card = btn.closest('.card.post');
+        if (card) card.remove();
+      } catch (err) {
+        console.error('Inline delete failed', err);
+        let msg = err && err.message ? err.message : 'Failed to delete post';
+        try { const j = JSON.parse(msg); if (j && j.message) msg = j.message; } catch (e) {}
+        showToast(msg, 2200);
+        // If the error indicates an invalid or missing token, clear it and let user log in again.
+        if (/no token|invalid token|401|unauthori/i.test(msg)) {
+          localStorage.removeItem('token');
+          if (confirm(msg + '\n\nYour session is invalid. Log in again?')) location.href = 'login.html';
+        }
+        // If it's a 403 Forbidden, do not clear token (user is authenticated but not the author)
+        if (/forbidden/i.test(msg)) {
+          // Informational only: user must be the author to delete
+        }
+      }
+    });
     btn._attached = true;
   });
 }
@@ -394,14 +436,21 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (searchBtn && searchInput) {
     searchBtn.addEventListener('click', async () => {
       const q = searchInput.value.trim();
+      const mood = document.getElementById('searchMood')?.value || '';
+      const author = document.getElementById('searchAuthor')?.value.trim() || '';
       const feed = document.getElementById('feed');
-      if (!q) return loadFeed();
+      if (!q && !author && !mood) return loadFeed();
       try {
-        const result = await apiFetch(`/api/post/search?q=${encodeURIComponent(q)}`);
+        const params = [];
+        if (q) params.push(`q=${encodeURIComponent(q)}`);
+        if (author) params.push(`author=${encodeURIComponent(author)}`);
+        if (mood) params.push(`mood=${encodeURIComponent(mood)}`);
+        const url = `/api/post/search?${params.join('&')}`;
+        const result = await apiFetch(url);
         if (!result || !result.length) {
           if (feed) feed.innerHTML = `<p>No results found</p>`;
         } else {
-          if (feed) { feed.innerHTML = result.map(postTemplate).join(''); attachPostClicks(feed); attachLikeHandlers(feed); }
+          if (feed) { feed.innerHTML = result.map(postTemplate).join(''); attachPostClicks(feed); attachLikeHandlers(feed); attachOwnerHandlers(feed); }
         }
       } catch (err) {
         if (feed) feed.innerHTML = `<p>Search failed</p>`;
@@ -556,6 +605,7 @@ function renderPostsList(posts, container = document.getElementById('myPosts'), 
   container.innerHTML = posts.map(postTemplate).join('');
   attachPostClicks(container);
   attachLikeHandlers(container);
+  attachOwnerHandlers(container);
 }
 
 // Expose helpers for inline scripts / console
