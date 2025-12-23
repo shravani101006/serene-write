@@ -525,6 +525,34 @@ window.addEventListener('DOMContentLoaded', async () => {
     attachFileInput(featuredFile, hiddenFeatured, featuredPreview);
   }
 
+  // Smooth-scroll helper that accounts for sticky navbar height
+  function scrollToIdWithOffset(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const header = document.querySelector('.navbar');
+    const offset = (header && header.offsetHeight) ? header.offsetHeight + 12 : 12;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top, behavior: 'smooth' });
+  }
+
+  // If the page loaded with a hash (e.g., index.html#about), scroll with offset after a short delay
+  if (location.hash) {
+    const id = location.hash.slice(1);
+    setTimeout(() => scrollToIdWithOffset(id), 50);
+  }
+
+  // Intercept About Us nav clicks when already on the index page to scroll smoothly
+  document.querySelectorAll('a[href$="#about"]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      // If we are on index, prevent navigation and smooth scroll
+      if (location.pathname.endsWith('index.html') || location.pathname === '/' || location.pathname === '') {
+        e.preventDefault();
+        scrollToIdWithOffset('about');
+      }
+      // otherwise allow the browser to navigate to index.html#about which will trigger the above hash handler
+    });
+  });
+
   // Load feed when on home page
   loadFeed();
 });

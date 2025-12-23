@@ -35,6 +35,8 @@
 /* ----------------------------------
    GLOBAL PAGE
 ---------------------------------- */
+html { scroll-behavior: smooth; }
+
 body {
   font-family: "Segoe UI", Tahoma, Verdana, sans-serif;
   background: linear-gradient(135deg, var(--cream), var(--white));
@@ -163,6 +165,27 @@ body {
 .hero p {
   font-size: 1.1rem;
   color: #666;
+}
+
+/* Ensure the feed has breathing room before the About section */
+.grid { margin-bottom: 2rem; }
+
+/* ----------------------------------
+   ABOUT BOX (matches hero width & spacing)
+---------------------------------- */
+.about-box {
+  max-width: 700px; /* match hero */
+  margin: 3rem auto 2rem; /* space above and below */
+  padding: 2.2rem; /* slightly tighter than hero */
+  border-radius: var(--radius);
+  background: var(--soft-white);
+  box-shadow: 0 6px 20px var(--shadow);
+  border: var(--panel-border-width) solid var(--panel-border-color, var(--purple));
+  text-align: left;
+}
+
+@media (max-width: 760px) {
+  .about-box { margin: 2rem 1rem; padding: 1.4rem; }
 } 
 
 /* ----------------------------------
