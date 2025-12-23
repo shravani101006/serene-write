@@ -232,10 +232,21 @@ body {
   color: #555;
 } 
 
-/* ----------------------------------
-   NEW POST / EDIT POST PAGE
----------------------------------- */
-.new-post-container {
+/* Post images should scale to the container while preserving aspect ratio */
+.post-view .post-img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin-top: 12px;
+  border-radius: 12px;
+  object-fit: contain;
+  max-height: 520px; /* keep very tall images from overwhelming the page */
+}
+
+@media (max-width: 760px) {
+  .post-view .post-img { max-height: 320px; }
+}
   max-width: 700px;
   margin: 3rem auto;
 }
@@ -378,6 +389,26 @@ body.new-post-theme .navbar {
   background: linear-gradient(135deg, var(--red), var(--purple));
   border-radius: 20px;
   margin-top: 20px;
+
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+/* ----------------------------------
+   IMAGE PREVIEWS & FILE INPUTS
+---------------------------------- */
+.file-label { display:block; margin-top:12px; }
+.file-label input[type="file"] { margin-top:8px; }
+
+.avatar-preview, .featured-preview {
+  display: block;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.avatar-preview { width:84px; height:84px; }
+.featured-preview { max-height: 320px; margin-top: 12px; }
 
   border: none;
   cursor: pointer;

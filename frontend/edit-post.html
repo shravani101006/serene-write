@@ -34,9 +34,11 @@
         <label>Tags (comma separated)
           <input name="tags" />
         </label>
-        <label>Featured Image (paste base64 or URL)
-          <textarea name="featuredImage" placeholder="data:image/png;base64,... or https://..."></textarea>
+        <label>Featured Image (optional)
+          <input type="file" name="featuredImageFile" accept="image/*" />
         </label>
+        <input type="hidden" name="featuredImage" />
+        <div class="featured-preview-wrap"><img id="featuredPreview" class="featured-preview" alt="featured preview" style="display:none;max-width:100%;border-radius:10px;margin-top:12px;"/></div>
         <label>Content (HTML allowed)
           <textarea name="content" rows="10"></textarea>
         </label>
@@ -60,7 +62,14 @@
       const post = await apiFetch(`/api/post/${id}`, 'GET');
       form.title.value = post.title;
       form.tags.value = (post.tags||[]).join(',');
-      form.featuredImage.value = post.featuredImage || '';
+
+      const hiddenFeatured = form.querySelector('input[name="featuredImage"]');
+      if (post.featuredImage) {
+        if (hiddenFeatured) hiddenFeatured.value = post.featuredImage;
+        const fp = document.getElementById('featuredPreview');
+        if (fp) { fp.src = post.featuredImage; fp.style.display = 'block'; }
+      } else if (hiddenFeatured) hiddenFeatured.value = '';
+
       form.content.value = post.content || '';
     } catch (err) {
       console.error('Failed to load post for editing', err);

@@ -26,7 +26,12 @@
         <input name="email" type="email" placeholder="Email" required />
         <input name="password" type="password" placeholder="Password" required minlength="6" />
         <textarea name="bio" placeholder="Bio (optional)"></textarea>
-        <textarea name="avatar" placeholder="Avatar (data:image/png;base64,...) (optional)"></textarea>
+
+      <label class="file-label">Avatar (optional)
+        <input type="file" name="avatarFile" accept="image/*" />
+      </label>
+      <input type="hidden" name="avatar" />
+      <div class="avatar-preview-wrap"><img id="avatarPreview" class="avatar-preview" alt="avatar preview" style="display:none"/></div>
 
         <button type="submit" class="auth-btn">Sign up</button>
       </form>

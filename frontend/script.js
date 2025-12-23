@@ -471,6 +471,59 @@ window.addEventListener('DOMContentLoaded', async () => {
     signupForm._attached = true;
   }
 
+  // File -> base64 helper
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result);
+      fr.onerror = reject;
+      fr.readAsDataURL(file);
+    });
+  }
+
+  function attachFileInput(fileInput, hiddenInput, previewEl) {
+    if (!fileInput || !hiddenInput) return;
+    if (fileInput._attached) return;
+    fileInput.addEventListener('change', async (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) {
+        hiddenInput.value = '';
+        if (previewEl) { previewEl.src = ''; previewEl.style.display = 'none'; }
+        return;
+      }
+      if (!f.type.startsWith('image/')) {
+        showToast('Please select an image file', 1800);
+        fileInput.value = '';
+        return;
+      }
+      try {
+        const data = await fileToBase64(f);
+        hiddenInput.value = data;
+        if (previewEl) { previewEl.src = data; previewEl.style.display = 'block'; }
+      } catch (err) {
+        console.error('Failed to read file', err);
+        showToast('Failed to read image file', 1600);
+      }
+    });
+    fileInput._attached = true;
+  }
+
+  // Attach avatar file input
+  const avatarFile = document.querySelector('input[name="avatarFile"]');
+  if (avatarFile) {
+    const hiddenAvatar = document.querySelector('input[name="avatar"]');
+    const avatarPreview = document.getElementById('avatarPreview');
+    attachFileInput(avatarFile, hiddenAvatar, avatarPreview);
+  }
+
+  // Attach featured image input (edit-post page)
+  const featuredFile = document.querySelector('input[name="featuredImageFile"]');
+  if (featuredFile) {
+    const hiddenFeatured = document.querySelector('input[name="featuredImage"]');
+    const featuredPreview = document.getElementById('featuredPreview');
+    attachFileInput(featuredFile, hiddenFeatured, featuredPreview);
+  }
+
   // Load feed when on home page
   loadFeed();
 });
