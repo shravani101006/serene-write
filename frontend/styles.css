@@ -262,6 +262,46 @@ body {
   border: 2px solid var(--blue);
 }
 
+/* ----------------------------------
+   NEW POST PAGE THEME (uses #C2A2B3 gradient)
+---------------------------------- */
+body.new-post-theme {
+  /* gradient centered on the requested shade, with soft highlights */
+  background: linear-gradient(135deg, #C2A2B3 0%, #E9DDE2 50%, #F7F5F7 100%);
+  background-attachment: fixed;
+  color: #3b3138;
+}
+
+/* keep panels readable on top of the gradient */
+body.new-post-theme .panel,
+body.new-post-theme .new-post-form,
+body.new-post-theme .hero,
+body.new-post-theme .auth-box {
+  background: rgba(255,255,255,0.92);
+  border-color: rgba(0,0,0,0.05);
+  box-shadow: 0 8px 26px rgba(0,0,0,0.12);
+}
+
+/* buttons adjusted to match the palette */
+body.new-post-theme .btn,
+body.new-post-theme .auth-btn {
+  background: linear-gradient(135deg, #C2A2B3 0%, #A98599 100%);
+  color: #fff;
+}
+
+/* inputs tuned for contrast */
+body.new-post-theme .new-post-form input,
+body.new-post-theme .new-post-form textarea {
+  background: rgba(255,255,255,0.95);
+  border: 1px solid rgba(90,68,79,0.12);
+}
+
+/* Slightly translucent navbar for a cohesive look */
+body.new-post-theme .navbar {
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(4px);
+}
+
 .new-post-form input:focus,
 .new-post-form textarea:focus,
 .auth-box input:focus {
@@ -312,7 +352,8 @@ body {
   margin-bottom: 1.2rem;
 }
 
-.auth-box input {
+.auth-box input,
+.auth-box textarea {
   width: 100%;
   padding: 14px;
   margin-top: 15px;
@@ -320,9 +361,12 @@ body {
   background: var(--cream);
   border-radius: 14px;
   border: 2px solid var(--blue);
+  min-height: 54px;
+  resize: vertical;
 }
 
-.auth-box input:focus {
+.auth-box input:focus,
+.auth-box textarea:focus {
   border-color: var(--purple);
   outline: none;
   box-shadow: 0 0 0 4px rgba(231,198,255,0.3);

@@ -8,30 +8,31 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="container auth-card">
-    <a href="/" class="brand center">SereneWrite</a>
-    <h2>Create an account</h2>
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">✨ SereneWrite</a>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-btn">Home</a>
+      </nav>
+    </div>
+  </header>
 
-    <form id="signupForm" class="form">
-      <label>Full name
-        <input name="name" required />
-      </label>
-      <label>Email
-        <input name="email" type="email" required />
-      </label>
-      <label>Password
-        <input name="password" type="password" required minlength="6" />
-      </label>
-      <label>Bio (optional)
-        <textarea name="bio"></textarea>
-      </label>
-      <label>Avatar (paste image base64 or leave blank)
-        <textarea name="avatar" placeholder="data:image/png;base64,..."></textarea>
-      </label>
+  <main class="auth-page active">
+    <div class="auth-box">
+      <h2 class="auth-title">Create an account</h2>
 
-      <button type="submit" class="btn">Sign up</button>
-      <p class="muted">Already have an account? <a href="login.html">Login</a></p>
-    </form>
+      <form id="signupForm">
+        <input name="name" placeholder="Full name" required />
+        <input name="email" type="email" placeholder="Email" required />
+        <input name="password" type="password" placeholder="Password" required minlength="6" />
+        <textarea name="bio" placeholder="Bio (optional)"></textarea>
+        <textarea name="avatar" placeholder="Avatar (data:image/png;base64,...) (optional)"></textarea>
+
+        <button type="submit" class="auth-btn">Sign up</button>
+      </form>
+
+      <p class="auth-switch">Already have an account? <a href="login.html">Login</a></p>
+    </div>
   </main>
 
 <script src="script.js"></script>
