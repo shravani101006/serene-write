@@ -435,12 +435,19 @@ window.addEventListener('DOMContentLoaded', async () => {
   const searchBtn = document.getElementById('searchBtn');
   const searchInput = document.getElementById('searchInput');
   if (searchBtn && searchInput) {
-    searchBtn.addEventListener('click', async () => {
+    const searchClear = document.getElementById('searchClear');
+    function updateClearVisibility() {
+      if (!searchClear) return;
+      searchClear.style.display = searchInput.value && searchInput.value.trim() ? 'inline-block' : 'none';
+    }
+    searchInput.addEventListener('input', updateClearVisibility);
+
+    async function doSearch() {
       const q = searchInput.value.trim();
       const mood = document.getElementById('searchMood')?.value || '';
       const author = document.getElementById('searchAuthor')?.value.trim() || '';
       const feed = document.getElementById('feed');
-      if (!q && !author && !mood) return loadFeed();
+      if (!q && !author && !mood) { updateClearVisibility(); return loadFeed(); }
       try {
         const params = [];
         if (q) params.push(`q=${encodeURIComponent(q)}`);
@@ -455,8 +462,16 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
       } catch (err) {
         if (feed) feed.innerHTML = `<p>Search failed</p>`;
-      }
-    });
+      } finally { updateClearVisibility(); }
+    }
+
+    if (searchClear) searchClear.addEventListener('click', (e) => { e.preventDefault(); searchInput.value = ''; updateClearVisibility(); loadFeed(); searchInput.focus(); });
+
+    searchBtn.addEventListener('click', doSearch);
+    searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doSearch(); } });
+
+    // initialize clear visibility
+    updateClearVisibility();
   }
 
   // Wire login/signup forms if present and not already handled by page scripts
